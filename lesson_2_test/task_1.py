@@ -1,39 +1,53 @@
-from typing import Iterable, Callable
-from itertools import groupby
+import dataclasses
+from datetime import datetime
+
+from simplemr import SimpleMapReduce
 
 
-def flatten[T](inp: Iterable[Iterable[T]]) -> Iterable[T]:
-    for it in inp:
-        for item in it:
-            yield item
+@dataclasses.dataclass
+class UserDatePair:
+    userid: str
+    date: datetime
 
 
-def run_map[T, U](mapper: Callable[T, Iterable[U]], input_stream: Iterable[T]):
-    return flatten(map(mapper, input_stream))
+@dataclasses.dataclass
+class DAU:
+    date: datetime
+    dau: int
 
 
-def run_reduce[T, U](reducer: Callable[Iterable[T], U],
-                     input_stream: Iterable[T],
-                     key: [str]) -> Iterable[U]:
-    def key_func(item):
-        return tuple(getattr(item, k) for k in key)
+# кладем в рекорд userid и обрезанную дату
+def assign_to_record(line):
+    fields = line.strip().split("\t")
 
-    sorted_stream = sorted(input_stream, key=key_func)
-    grouped_stream = groupby(sorted_stream, key=key_func)
-    return flatten(map(lambda x: reducer(x[1]), grouped_stream))
+    if fields[2] != "search":  # заголовок
+        yield from ()
+
+    else:
+        yield UserDatePair(userid=fields[0], date=datetime.fromisoformat(fields[1]).strftime("%Y-%m-%d"))
 
 
-class SimpleMapReduce:
-    def __init__(self, stream):
-        self._stream = stream
+def utilise_data(record):
+    for user_id in record:
+        yield user_id
+        break
 
-    def map(self, mapper):
-        self._stream = run_map(mapper, self._stream)
-        return self
 
-    def reduce(self, reducer, key):
-        self._stream = run_reduce(reducer, self._stream, key)
-        return self
+def count_dau(item):
+    count = 0
+    data = None
 
-    def output(self):
-        return self._stream
+    for i in item:
+        data = i.date
+        count += 1
+
+    yield DAU(date=data, dau=count)
+
+
+def process(mrjob: SimpleMapReduce) -> SimpleMapReduce:
+    return (
+        mrjob
+        .map(assign_to_record)
+        .reduce(utilise_data, key=["userid", "date"])
+        .reduce(count_dau, key=["date"])
+    )
