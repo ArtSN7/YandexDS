@@ -1,5 +1,5 @@
 from simplemr import SimpleMapReduce
-from task_1 import process
+from task_3 import process
 
 with open("log.tsv", "r") as input_stream:
     mrjob = process(SimpleMapReduce(input_stream))
