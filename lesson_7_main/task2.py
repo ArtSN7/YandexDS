@@ -15,13 +15,12 @@ def create_boxplot_by_position(data: pd.DataFrame):
 
     fig, ax = plt.subplots(figsize=(16, 8))
 
-    # Создание boxplot
     bp = ax.boxplot(
         points_by_position,
         positions=positions,
         widths=0.6,
         patch_artist=True,
-        showfliers=True,  # Показывать выбросы
+        showfliers=True, 
         flierprops={
             "marker": "o",
             "markerfacecolor": "red",
@@ -39,12 +38,11 @@ def create_boxplot_by_position(data: pd.DataFrame):
     ax.set_xlabel("Позиция", fontsize=14, fontweight="bold")
     ax.set_ylabel("Очки", fontsize=14, fontweight="bold")
     ax.set_title(
-        'Распределение очков по позициям в таблице АПЛ (2010-2020)',
+        "Распределение очков по позициям в таблице АПЛ (2010-2020)",
         fontsize=16,
         fontweight="bold",
         pad=20,
     )
-
 
     ax.set_xticks(positions)
     ax.set_xticklabels(positions)
@@ -52,7 +50,6 @@ def create_boxplot_by_position(data: pd.DataFrame):
     ax.grid(True, axis="y", alpha=0.3, linestyle="--")
     ax.set_axisbelow(True)
 
-    # Добавление легенды
     legend_elements = [
         plt.Line2D(
             [0],
@@ -78,11 +75,8 @@ def create_boxplot_by_position(data: pd.DataFrame):
 
     plt.tight_layout()
 
-    #return fig, ax
-
 
 def main():
-    # Загрузка данных
     data = load_data("./eplleaguetables.csv")
     create_boxplot_by_position(data)
 
